@@ -75,19 +75,23 @@ func Tokenize(jsonString string) ([]Token, error) {
 			current++
 		case '"':
 			current++
-			temp := current
-			str := ""
+			start := current
 
-			for jsonString[temp] != '"' {
-				str += string(jsonString[temp])
-				temp++
+			for current < stringLength && jsonString[current] != '"' {
+				if jsonString[current] == '\\' {
+					current++
+				}
+				current++
+			}
+
+			str := jsonString[start:current]
+
+			if current >= stringLength {
+				return nil, fmt.Errorf("unterminated string: " + str)
 			}
 
 			tokens = append(tokens, Token{Type: TKN_STRING, Value: str})
-
-			current = temp
 			current++
-			continue
 
 		default:
 			rest := jsonString[current:]
@@ -117,7 +121,7 @@ func Tokenize(jsonString string) ([]Token, error) {
 
 				tokens = append(tokens, Token{Type: TKN_NUMBER, Value: number})
 			} else {
-				return nil, fmt.Errorf("unexpected character: %c", char)
+				return nil, fmt.Errorf("unexpected character: %c, position: %d", char, current)
 			}
 		}
 	}

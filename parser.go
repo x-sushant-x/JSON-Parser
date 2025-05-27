@@ -124,3 +124,30 @@ func parseObject(current *int, tokens []Token) (ASTNode, error) {
 
 	return node, nil
 }
+
+func parseArray(current *int, tokens []Token) (ASTNode, error) {
+	node := ArrayNode{
+		Value: make([]ASTNode, 0),
+	}
+
+	*current++
+
+	currToken := tokens[*current]
+
+	for currToken.Type != TKN_BRACKET_CLOSE {
+		val, err := parseValue(currToken)
+		if err != nil {
+			return nil, err
+		}
+
+		node.Value = append(node.Value, val)
+
+		*current++
+
+		if tokens[*current].Type == TKN_COMMA {
+			*current++
+		}
+	}
+
+	return node, nil
+}

@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"strconv"
 )
 
@@ -79,6 +80,47 @@ func parseValue(token Token) (ASTNode, error) {
 	case TKN_NULL:
 		return NullNode{}, nil
 	default:
-		return nil, errors.New("invalid token type: " + token.Type)
+		return nil, fmt.Errorf("invalid token type: %s", token.Type)
 	}
+}
+
+func parseObject(current *int, tokens []Token) (ASTNode, error) {
+	node := ObjectNode{
+		Value: make(map[string]ASTNode),
+	}
+
+	*current++
+
+	currToken := tokens[*current]
+
+	for currToken.Type != TKN_BRACE_CLOSE {
+		if currToken.Type == TKN_STRING {
+			key := currToken.Value
+
+			*current++
+
+			if tokens[*current].Type != TKN_COLON {
+				return nil, fmt.Errorf("expected : in key value pair, got: %s", currToken.Type)
+			}
+
+			*current++
+
+			value, err := parseValue(tokens[*current])
+			if err != nil {
+				return nil, err
+			}
+
+			node.Value[key] = value
+		} else {
+			return nil, fmt.Errorf("expected string key in object, got: %s", currToken.Type)
+		}
+
+		*current++
+
+		if tokens[*current].Type == TKN_COMMA {
+			*current++
+		}
+	}
+
+	return node, nil
 }

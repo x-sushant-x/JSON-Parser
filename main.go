@@ -6,24 +6,14 @@ import (
 )
 
 func main() {
-	// input := `{
-	// 	"id": "d5475d58-9a02-49ae-ba2e-93d6a6c2e39e",
-	// 	"name": "iPhone 6s",
-	// 	"price": -0649.99,
-	// 	"isAvailable": true,
-	// 	"colors" : ["White", "Grey"],
-	// 	"discount" : null
-	// }`
-
 	input := `{
-	  "quote": "\"Hello\"",
-	  "escapedBackslash": "\\\\",
-	  "unicode": "\u2764",
-	  "scientific": 1.23e+10,
-	  "badString": "unterminated,
-	  "mixed": truefalse
-	}
-`
+		"id": "d5475d58-9a02-49ae-ba2e-93d6a6c2e39e",
+		"name": "iPhone 6s",
+		"price": 649.99,
+		"isAvailable": true,
+		"colors" : ["White", "Grey"],
+		"discount" : null
+	}`
 
 	tokens, err := Tokenize(input)
 

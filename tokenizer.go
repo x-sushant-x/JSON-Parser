@@ -109,11 +109,55 @@ func Tokenize(jsonString string) ([]Token, error) {
 				start := current
 				current++
 
-				for current < stringLength && (unicode.IsNumber(rune(jsonString[current])) || jsonString[current] == '.') {
-					current++
+				hasDot := false
+				hasExp := false
+				expDigits := 0
+
+				for current < stringLength {
+					c := jsonString[current]
+
+					if unicode.IsDigit(rune(c)) {
+						current++
+
+						if hasExp {
+							expDigits++
+						}
+					} else if c == '.' {
+						if hasDot || hasExp {
+							return nil, fmt.Errorf("invalid number: multiple dots or dot after exponent at position %d", current)
+						}
+
+						hasDot = true
+						current++
+					} else if c == 'e' || c == 'E' {
+						if hasExp {
+							return nil, fmt.Errorf("invalid number: multiple exponents at position %d", current)
+						}
+
+						hasExp = true
+						current++
+
+						if current < stringLength && jsonString[current] == '+' || jsonString[current] == '-' {
+							current++
+						}
+
+						expDigits = 0
+					} else {
+						break
+					}
 				}
 
 				number := jsonString[start:current]
+
+				isValidJSONNumber := isValidNumber(number)
+				if !isValidJSONNumber {
+					return nil, fmt.Errorf("invalid JSON number: %s \n", number)
+				}
+
+				// Additional validation for bad exponent
+				if hasExp && expDigits == 0 {
+					return nil, fmt.Errorf("invalid number: exponent missing digits in '%s'", number)
+				}
 
 				if _, err := strconv.ParseFloat(number, 64); err != nil {
 					return nil, fmt.Errorf("invalid number: %s", number)
@@ -135,4 +179,24 @@ func printTokens(tokens []Token) {
 	for _, token := range tokens {
 		fmt.Printf("%-14s | %s\n", token.Type, token.Value)
 	}
+}
+
+func isValidNumber(number string) bool {
+	if number[0] == '-' {
+
+		// Number contains only: -
+		if len(number) < 1 {
+			return false
+		}
+
+		if number[1] == '0' {
+			return false
+		}
+	}
+
+	if number[0] == '0' {
+		return false
+	}
+
+	return true
 }
